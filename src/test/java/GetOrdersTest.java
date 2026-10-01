@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -25,7 +26,7 @@ public class GetOrdersTest {
         Response response = orderClient.getOrders();
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("orders", notNullValue())
                 .body("orders", instanceOf(java.util.List.class));
     }

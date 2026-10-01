@@ -12,6 +12,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.http.HttpStatus.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -29,6 +31,12 @@ public class LoginCourierTest {
         login = "courier_" + RandomStringUtils.randomAlphanumeric(8);
         password = "password123";
         firstName = "Ivan";
+
+        Courier courier = new Courier(login, password, firstName);
+
+        courierClient.create(courier)
+                .then()
+                .statusCode(SC_CREATED);
     }
 
     @After
@@ -38,12 +46,12 @@ public class LoginCourierTest {
 
         Response loginResponse = courierClient.login(credentials);
 
-        if (loginResponse.statusCode() == 200) {
+        if (loginResponse.statusCode() == SC_OK) {
             int courierId = loginResponse.jsonPath().getInt("id");
 
             courierClient.delete(courierId)
                     .then()
-                    .statusCode(200);
+                    .statusCode(SC_OK);
         }
     }
 
@@ -51,38 +59,26 @@ public class LoginCourierTest {
     @DisplayName("Курьер может авторизоваться")
     @Description("Проверяем успешную авторизацию существующего курьера")
     public void shouldLoginCourierSuccessfully() {
-        Courier courier = new Courier(login, password, firstName);
-
-        courierClient.create(courier)
-                .then()
-                .statusCode(201);
-
         CourierCredentials credentials =
                 new CourierCredentials(login, password);
 
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(200);
+                .statusCode(SC_OK);
     }
 
     @Test
     @DisplayName("Успешная авторизация возвращает id")
     @Description("Проверяем, что после успешной авторизации API возвращает id курьера")
     public void shouldReturnIdAfterSuccessfulLogin() {
-        Courier courier = new Courier(login, password, firstName);
-
-        courierClient.create(courier)
-                .then()
-                .statusCode(201);
-
         CourierCredentials credentials =
                 new CourierCredentials(login, password);
 
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(200)
+                .statusCode(SC_OK)
                 .body("id", notNullValue())
                 .body("id", greaterThan(0));
     }
@@ -97,7 +93,11 @@ public class LoginCourierTest {
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(400);
+                .statusCode(SC_BAD_REQUEST)
+                .body(
+                        "message",
+                        equalTo("Недостаточно данных для входа")
+                );
     }
 
     @Test
@@ -110,45 +110,45 @@ public class LoginCourierTest {
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(400);
+                .statusCode(SC_BAD_REQUEST)
+                .body(
+                        "message",
+                        equalTo("Недостаточно данных для входа")
+                );
     }
 
     @Test
     @DisplayName("Нельзя авторизоваться с неправильным логином")
     @Description("Проверяем ошибку при передаче неправильного логина")
     public void shouldNotLoginWithWrongLogin() {
-        Courier courier = new Courier(login, password, firstName);
-
-        courierClient.create(courier)
-                .then()
-                .statusCode(201);
-
         CourierCredentials credentials =
                 new CourierCredentials(login + "_wrong", password);
 
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(404);
+                .statusCode(SC_NOT_FOUND)
+                .body(
+                        "message",
+                        equalTo("Учетная запись не найдена")
+                );
     }
 
     @Test
     @DisplayName("Нельзя авторизоваться с неправильным паролем")
     @Description("Проверяем ошибку при передаче неправильного пароля")
     public void shouldNotLoginWithWrongPassword() {
-        Courier courier = new Courier(login, password, firstName);
-
-        courierClient.create(courier)
-                .then()
-                .statusCode(201);
-
         CourierCredentials credentials =
                 new CourierCredentials(login, password + "_wrong");
 
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(404);
+                .statusCode(SC_NOT_FOUND)
+                .body(
+                        "message",
+                        equalTo("Учетная запись не найдена")
+                );
     }
 
     @Test
@@ -164,6 +164,10 @@ public class LoginCourierTest {
         Response response = courierClient.login(credentials);
 
         response.then()
-                .statusCode(404);
+                .statusCode(SC_NOT_FOUND)
+                .body(
+                        "message",
+                        equalTo("Учетная запись не найдена")
+                );
     }
 }

@@ -9,6 +9,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.equalTo;
 
 public class CreateCourierTest {
@@ -34,12 +35,12 @@ public class CreateCourierTest {
 
         Response loginResponse = courierClient.login(credentials);
 
-        if (loginResponse.statusCode() == 200) {
+        if (loginResponse.statusCode() == SC_OK) {
             int courierId = loginResponse.jsonPath().getInt("id");
 
             courierClient.delete(courierId)
                     .then()
-                    .statusCode(200);
+                    .statusCode(SC_OK);
         }
     }
 
@@ -52,7 +53,7 @@ public class CreateCourierTest {
         Response response = courierClient.create(courier);
 
         response.then()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
     }
 
@@ -64,13 +65,13 @@ public class CreateCourierTest {
 
         courierClient.create(courier)
                 .then()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         Response response = courierClient.create(courier);
 
         response.then()
-                .statusCode(409)
+                .statusCode(SC_CONFLICT)
                 .body(
                         "message",
                         equalTo("Этот логин уже используется. Попробуйте другой.")
@@ -86,7 +87,7 @@ public class CreateCourierTest {
         Response response = courierClient.create(courier);
 
         response.then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body(
                         "message",
                         equalTo("Недостаточно данных для создания учетной записи")
@@ -102,7 +103,7 @@ public class CreateCourierTest {
         Response response = courierClient.create(courier);
 
         response.then()
-                .statusCode(400)
+                .statusCode(SC_BAD_REQUEST)
                 .body(
                         "message",
                         equalTo("Недостаточно данных для создания учетной записи")
@@ -117,7 +118,7 @@ public class CreateCourierTest {
 
         courierClient.create(firstCourier)
                 .then()
-                .statusCode(201)
+                .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
         Courier secondCourier =
@@ -126,7 +127,7 @@ public class CreateCourierTest {
         Response response = courierClient.create(secondCourier);
 
         response.then()
-                .statusCode(409)
+                .statusCode(SC_CONFLICT)
                 .body(
                         "message",
                         equalTo("Этот логин уже используется. Попробуйте другой.")

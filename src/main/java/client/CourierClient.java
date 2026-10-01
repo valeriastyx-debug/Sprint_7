@@ -9,6 +9,8 @@ import io.restassured.specification.RequestSpecification;
 import models.Courier;
 import models.CourierCredentials;
 
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 
 public class CourierClient {
@@ -49,7 +51,7 @@ public class CourierClient {
     }
 
     @Step("Авторизация курьера с неполными данными")
-    public Response login(Object credentials) {
+    public Response login(Map<String, String> credentials) {
         return given()
                 .spec(getBaseSpec())
                 .body(credentials)
